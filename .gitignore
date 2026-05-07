@@ -6,7 +6,7 @@ uploads/*
 !uploads/.gitkeep
 
 # Env
-.env
+#.env
 .env.local
 .env.*.local
 
