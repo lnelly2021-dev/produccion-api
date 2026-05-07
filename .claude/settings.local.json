@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(cmd /c \"tree /F /A \"\"c:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\APPI POS BETO\\\\api-basic\"\" 2>nul\")",
+      "PowerShell(cmd /c \"tree /F /A \"\"C:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\proyectos\\\\pos\\\\SmartPos\\\\core\"\" 2>nul\")",
+      "PowerShell(cmd /c \"dir /B \"\"c:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\APPI POS BETO\\\\api-basic\\\\routes\"\"\")",
+      "PowerShell(cmd /c \"dir /B /S \"\"c:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\APPI POS BETO\\\\api-basic\\\\utils\"\" & dir /B /S \"\"c:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\APPI POS BETO\\\\api-basic\\\\services\"\"\")",
+      "PowerShell(cmd /c \"dir /B /S \"\"C:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\proyectos\\\\pos\\\\SmartPos\\\\core\\\\src\"\" 2>nul || dir /B /S \"\"C:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\proyectos\\\\pos\\\\SmartPos\\\\core\\\\app\"\" 2>nul\")",
+      "PowerShell(cmd /c \"dir /B \"\"C:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\proyectos\\\\pos\\\\SmartPos\\\\core\"\"\")",
+      "PowerShell(cmd /c \"dir /B /S \"\"C:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\proyectos\\\\pos\\\\SmartPos\\\\core\\\\app\"\" 2>nul\")",
+      "PowerShell(cmd /c \"type \"\"c:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\APPI POS BETO\\\\api-basic\\\\.env\"\" 2>nul || echo NO_ENV_FILE\")",
+      "PowerShell(cmd /c \"cd \"\"C:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\proyectos\\\\pos\\\\SmartPos\\\\core\"\" && npm install axios\")",
+      "PowerShell(cmd /c \"cd \"\"c:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\APPI POS BETO\\\\api-basic\"\" && npx tsc --noEmit 2>&1\")",
+      "PowerShell(cmd /c \"cd \"\"C:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\proyectos\\\\pos\\\\SmartPos\\\\core\"\" && npx tsc --noEmit 2>&1\")",
+      "PowerShell(cmd /c \"cd \"\"c:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\APPI POS BETO\\\\api-basic\"\" && npm install --save-dev nodemon 2>&1\")",
+      "PowerShell(cmd /c \"cd \"\"c:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\APPI POS BETO\\\\api-basic\"\" && npm run dev 2>&1\")",
+      "PowerShell(cmd /c \"ping -n 5 127.0.0.1 > nul && type \"\"C:\\\\Users\\\\USUARIO\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-USUARIO-OneDrive-Documentos-APPI-POS-BETO-api-basic\\\\7a047956-8f27-42a3-82a9-76320d8c5c4c\\\\tasks\\\\beinbfc7b.output\"\"\")",
+      "PowerShell(cmd /c \"cd \"\"c:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\APPI POS BETO\\\\api-basic\"\" && npm install mongodb 2>&1\")",
+      "PowerShell(cmd /c \"nslookup -type=SRV _mongodb._tcp.cluster0.slfrogo.mongodb.net 8.8.8.8 2>&1\")",
+      "PowerShell(cmd /c \"type \"\"C:\\\\Users\\\\USUARIO\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-USUARIO-OneDrive-Documentos-APPI-POS-BETO-api-basic\\\\7a047956-8f27-42a3-82a9-76320d8c5c4c\\\\tasks\\\\bbyzk10ac.output\"\"\")",
+      "PowerShell(cmd /c \"for /f \"\"tokens=5\"\" %a in \\('netstat -aon ^| findstr :5000'\\) do taskkill /F /PID %a\")"
+    ]
+  }
+}
