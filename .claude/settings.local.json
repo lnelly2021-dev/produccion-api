@@ -18,7 +18,8 @@
       "PowerShell(cmd /c \"cd \"\"c:\\\\Users\\\\USUARIO\\\\OneDrive\\\\Documentos\\\\APPI POS BETO\\\\api-basic\"\" && npm install mongodb 2>&1\")",
       "PowerShell(cmd /c \"nslookup -type=SRV _mongodb._tcp.cluster0.slfrogo.mongodb.net 8.8.8.8 2>&1\")",
       "PowerShell(cmd /c \"type \"\"C:\\\\Users\\\\USUARIO\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-USUARIO-OneDrive-Documentos-APPI-POS-BETO-api-basic\\\\7a047956-8f27-42a3-82a9-76320d8c5c4c\\\\tasks\\\\bbyzk10ac.output\"\"\")",
-      "PowerShell(cmd /c \"for /f \"\"tokens=5\"\" %a in \\('netstat -aon ^| findstr :5000'\\) do taskkill /F /PID %a\")"
+      "PowerShell(cmd /c \"for /f \"\"tokens=5\"\" %a in \\('netstat -aon ^| findstr :5000'\\) do taskkill /F /PID %a\")",
+      "PowerShell(Get-Command git -ErrorAction SilentlyContinue)"
     ]
   }
 }

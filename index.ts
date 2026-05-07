@@ -26,8 +26,10 @@ import domicilioRoutes from "./routes/domicilio.routes";
 import cierreRoutes    from "./routes/cierre.routes";
 import recaudoRoutes   from "./routes/recaudo.routes";
 import contactoRoutes  from "./routes/contacto.routes";
-import salidaRoutes    from "./routes/salida.routes";
-import ventaRoutes  from "./routes/venta.routes";
+import salidaRoutes      from "./routes/salida.routes";
+import ventaRoutes        from "./routes/venta.routes";
+import cotizacionRoutes   from "./routes/cotizacion.routes";
+import egresoRoutes       from "./routes/egreso.routes";
 
 // ---- App setup -------------------------------------------------------------
 
@@ -63,8 +65,10 @@ app.use(`/api/${V}/branches/:branchId/domicilios`,  domicilioRoutes);
 app.use(`/api/${V}/branches/:branchId/cierres`,     cierreRoutes);
 app.use(`/api/${V}/branches/:branchId/recaudos`,    recaudoRoutes);
 app.use(`/api/${V}/branches/:branchId/contactos`,   contactoRoutes);
-app.use(`/api/${V}/branches/:branchId/salidas`,     salidaRoutes);
-app.use(`/api/${V}/branches/:branchId/ventas`,   ventaRoutes);
+app.use(`/api/${V}/branches/:branchId/salidas`,       salidaRoutes);
+app.use(`/api/${V}/branches/:branchId/ventas`,        ventaRoutes);
+app.use(`/api/${V}/branches/:branchId/egresos`,       egresoRoutes);
+app.use(`/api/${V}/branches/:branchId/cotizaciones`,  cotizacionRoutes);
 app.use(`/api/${V}/example`, exampleRoutes);
 
 // ---- Error handlers (always at the end) ------------------------------------
