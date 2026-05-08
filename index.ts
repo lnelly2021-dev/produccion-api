@@ -29,6 +29,7 @@ import contactoRoutes  from "./routes/contacto.routes";
 import salidaRoutes      from "./routes/salida.routes";
 import ventaRoutes        from "./routes/venta.routes";
 import cotizacionRoutes   from "./routes/cotizacion.routes";
+import pasivoRoutes       from "./routes/pasivo.routes";
 import egresoRoutes       from "./routes/egreso.routes";
 
 // ---- App setup -------------------------------------------------------------
@@ -69,6 +70,7 @@ app.use(`/api/${V}/branches/:branchId/salidas`,       salidaRoutes);
 app.use(`/api/${V}/branches/:branchId/ventas`,        ventaRoutes);
 app.use(`/api/${V}/branches/:branchId/egresos`,       egresoRoutes);
 app.use(`/api/${V}/branches/:branchId/cotizaciones`,  cotizacionRoutes);
+app.use(`/api/${V}/branches/:branchId/pasivos`,       pasivoRoutes);
 app.use(`/api/${V}/example`, exampleRoutes);
 
 // ---- Error handlers (always at the end) ------------------------------------
