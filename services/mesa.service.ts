@@ -73,3 +73,10 @@ export async function liberarMesa(mesaId: string, branchId: string, userId: stri
     { estado: "cancelado" }
   );
 }
+
+export async function eliminar(mesaId: string, branchId: string, userId: string) {
+  await assertAccess(branchId, userId);
+  const mesa = await Mesa.findOne({ _id: mesaId, branch: branchId, active: true });
+  if (!mesa) throw new NotFoundError("Mesa no encontrada");
+  await Mesa.findByIdAndUpdate(mesaId, { active: false });
+}

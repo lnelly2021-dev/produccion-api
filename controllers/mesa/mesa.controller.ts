@@ -39,6 +39,13 @@ export const liberar = async (req: Request, res: Response, next: NextFunction) =
   } catch (err) { next(err); }
 };
 
+export const eliminar = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    await mesaService.eliminar(mesaId(req), branchId(req), userId(req));
+    ok(res, { eliminada: true });
+  } catch (err) { next(err); }
+};
+
 // ── Pedido activo ──────────────────────────────────────────────────────────
 export const getPedido = async (req: Request, res: Response, next: NextFunction) => {
   try { ok(res, await pedidoService.getActivo(mesaId(req), branchId(req), userId(req))); }

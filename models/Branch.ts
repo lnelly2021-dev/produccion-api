@@ -5,6 +5,7 @@ export interface IBranch extends Document {
   company: Types.ObjectId;
   address?: string;
   phone?: string;
+  bancos: string[];
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -15,8 +16,9 @@ const branchSchema = new Schema<IBranch>(
     name: { type: String, required: true, trim: true },
     company: { type: Schema.Types.ObjectId, ref: "Company", required: true },
     address: { type: String, trim: true },
-    phone: { type: String, trim: true },
-    active: { type: Boolean, default: true },
+    phone:   { type: String, trim: true },
+    bancos:  [{ type: String }],
+    active:  { type: Boolean, default: true },
   },
   { timestamps: true }
 );

@@ -9,8 +9,9 @@ router.use(authMiddleware);
 router.get( "/",                    mc.listar);
 router.post("/",                    mc.crear);
 router.post("/init",                mc.inicializar);
-router.put( "/:mesaId/mesero",      mc.asignarMesero);
-router.put( "/:mesaId/liberar",     mc.liberar);
+router.put(    "/:mesaId/mesero",      mc.asignarMesero);
+router.put(    "/:mesaId/liberar",     mc.liberar);
+router.delete( "/:mesaId",            mc.eliminar);
 
 // Pedido activo de la mesa
 router.get( "/:mesaId/pedido",      mc.getPedido);
