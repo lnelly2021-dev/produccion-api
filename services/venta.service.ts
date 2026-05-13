@@ -23,7 +23,11 @@ export async function crear(branchId: string, userId: string, dto: any) {
     medioPago:  dto.medioPago  || "EFECTIVO",
     pagos:      dto.pagos      || [],
     productos:  dto.productos  || [],
-    valor:      Number(dto.valor) || 0,
+    subtotal:   Number(dto.subtotal) || 0,
+    impuesto:   Number(dto.impuesto) || 0,
+    propina:    Number(dto.propina)  || 0,
+    envio:      Number(dto.envio)    || 0,
+    valor:      Number(dto.valor)    || 0,
     estado:     dto.tipoPago === "CRÉDITO" ? "PENDIENTE" : "CUADRADA",
     categoria:  "ingreso",
   });
