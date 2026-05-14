@@ -91,29 +91,36 @@ export async function avanzarEstado(domId: string, branchId: string, userId: str
   dom.estado = sig as any;
   await dom.save();
 
-  // Al marcar ENTREGADO sin factura → registrar como Venta
+  // Al marcar ENTREGADO sin factura → registrar como Venta (solo si no existe ya)
   if (sig === "ENTREGADO" && !dom.facturaId) {
-    await Venta.create({
-      branch:     branchId,
-      nroFactura: dom.nro,
-      cliente:    dom.cliente,
-      tipoPago:   "CONTADO",
-      medioPago:  dom.medioPago,
-      pagos:      dom.pagos,
-      productos:  dom.productos.map(p => ({ ...p, subtotal: p.precio * p.cantidad })),
-      valor:      dom.total,
-      estado:     "CUADRADA",
-      categoria:  "ingreso",
-    });
-    for (const p of dom.productos) {
-      const pid = String(p.productoId || "").trim();
-      if (!pid || pid.length < 12) continue; // skip invalid ObjectIds
-      try {
-        await Product.findOneAndUpdate(
-          { _id: pid, branch: branchId },
-          { $inc: { stock: -(Number(p.cantidad) || 0) } }
-        );
-      } catch { /* ignore invalid productoId */ }
+    const existeVenta = await Venta.findOne({ nroFactura: dom.nro, branch: branchId });
+    if (!existeVenta) {
+      await Venta.create({
+        branch:     branchId,
+        nroFactura: dom.nro,
+        cliente:    dom.cliente,
+        tipoPago:   "CONTADO",
+        medioPago:  dom.medioPago,
+        pagos:      dom.pagos,
+        productos:  dom.productos.map(p => ({ ...p, subtotal: p.precio * p.cantidad })),
+        subtotal:   dom.subtotal || 0,
+        impuesto:   0,
+        propina:    0,
+        envio:      dom.envio    || 0,
+        valor:      dom.total,
+        estado:     "CUADRADA",
+        categoria:  "ingreso",
+      });
+      for (const p of dom.productos) {
+        const pid = String(p.productoId || "").trim();
+        if (!pid || pid.length < 12) continue;
+        try {
+          await Product.findOneAndUpdate(
+            { _id: pid, branch: branchId },
+            { $inc: { stock: -(Number(p.cantidad) || 0) } }
+          );
+        } catch { /* ignore invalid productoId */ }
+      }
     }
   }
 
