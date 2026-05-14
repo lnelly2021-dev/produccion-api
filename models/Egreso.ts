@@ -5,7 +5,7 @@ export interface IEgreso extends Document {
   nroDoc:       string;
   fecha:        string;
   fechaISO:     string;
-  tipo:         "GASTO" | "INVENTARIO" | "PRESTAMO";
+  tipo:         "GASTO" | "INVENTARIO" | "PRESTAMO" | "CAMBIO";
   proveedor:    string;
   concepto:     string;
   valor:        number;
@@ -21,7 +21,7 @@ const egresoSchema = new Schema<IEgreso>(
     nroDoc:      { type: String, required: true },
     fecha:       { type: String, required: true },
     fechaISO:    { type: String, required: true },
-    tipo:        { type: String, enum: ["GASTO", "INVENTARIO", "PRESTAMO"], required: true },
+    tipo:        { type: String, enum: ["GASTO", "INVENTARIO", "PRESTAMO", "CAMBIO"], required: true },
     proveedor:   { type: String, default: "" },
     concepto:    { type: String, default: "" },
     valor:       { type: Number, required: true },
