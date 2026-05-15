@@ -46,6 +46,8 @@ const cotizacionSchema = new Schema<ICotizacion>(
     email:      { type: String, default: "" },
     items:      [itemSchema],
     descuento:  { type: Number, default: 0 },
+    impuesto:   { type: Number, default: 0 },
+    domicilio:  { type: Number, default: 0 },
     notas:      { type: String, default: "" },
     subtotal:   { type: Number, required: true },
     totalFinal: { type: Number, required: true },
