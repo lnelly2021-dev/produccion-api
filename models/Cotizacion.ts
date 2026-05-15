@@ -17,9 +17,11 @@ export interface ICotizacion extends Document {
   telefono: string;
   email: string;
   items: ICotizacionItem[];
-  descuento: number;
-  notas: string;
-  subtotal: number;
+  descuento:  number;
+  impuesto:   number;
+  domicilio:  number;
+  notas:      string;
+  subtotal:   number;
   totalFinal: number;
   estado: "vigente" | "vencida" | "aceptada" | "cancelada";
 }
