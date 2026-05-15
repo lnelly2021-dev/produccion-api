@@ -66,6 +66,15 @@ export const addMember = async (req: Request, res: Response, next: NextFunction)
   } catch (err) { next(err); }
 };
 
+export const createAndAddMember = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const access = await companyService.createAndAddMember(
+      String(req.params.id), req.user!.userId, req.body
+    );
+    created(res, access);
+  } catch (err) { next(err); }
+};
+
 export const updateMember = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
   try {
     const { role, branchIds, allBranches } = req.body;

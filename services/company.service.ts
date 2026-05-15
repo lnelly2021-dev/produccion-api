@@ -128,6 +128,30 @@ export async function addMember(
   return access.populate(["user", "branches"]);
 }
 
+export async function createAndAddMember(
+  companyId: string,
+  requesterId: string,
+  dto: { name: string; email: string; password: string; role: CompanyRole; branchIds: string[]; allBranches: boolean }
+) {
+  await assertAdmin(companyId, requesterId);
+
+  const existing = await User.findOne({ email: dto.email.toLowerCase() });
+  if (existing) throw new ConflictError(`Ya existe un usuario con el correo: ${dto.email}`);
+
+  const bcrypt = await import("bcrypt");
+  const hashed = await bcrypt.hash(dto.password, 12);
+  const user = await User.create({
+    name: dto.name, email: dto.email.toLowerCase(), password: hashed, role: "cashier",
+  });
+
+  const access = await UserCompanyAccess.create({
+    user: user._id, company: companyId,
+    branches: dto.branchIds, allBranches: dto.allBranches, role: dto.role,
+  });
+
+  return access.populate(["user", "branches"]);
+}
+
 export async function updateMember(
   companyId: string,
   requesterId: string,

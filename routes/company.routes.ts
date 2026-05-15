@@ -16,6 +16,7 @@ router.delete("/:id", companyController.remove);
 // Members
 router.get("/:id/members", companyController.listMembers);
 router.post("/:id/members", companyController.addMember);
+router.post("/:id/members/create", companyController.createAndAddMember);
 router.put("/:id/members/:userId", companyController.updateMember);
 router.delete("/:id/members/:userId", companyController.removeMember);
 
