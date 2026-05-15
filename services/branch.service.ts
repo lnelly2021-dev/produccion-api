@@ -83,4 +83,10 @@ export async function softDelete(
   );
 
   if (!branch) throw new NotFoundError("Branch not found");
+
+  // Limpiar la referencia en UserCompanyAccess para que /auth/me no la devuelva
+  await UserCompanyAccess.updateMany(
+    { company: companyId },
+    { $pull: { branches: branch._id } }
+  );
 }

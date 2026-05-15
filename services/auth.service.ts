@@ -181,7 +181,7 @@ export async function getProfile(userId: string) {
 
   const accesses = await UserCompanyAccess.find({ user: userId, active: true })
     .populate<{ company: { _id: unknown; name: string } }>("company", "name taxId address phone email logo")
-    .populate("branches", "name address phone")
+    .populate({ path: "branches", match: { active: true }, select: "name address phone" })
     .lean();
 
   return { user, companies: accesses };
