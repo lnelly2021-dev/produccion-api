@@ -1,16 +1,6 @@
 import Product from "../models/Product";
-import UserCompanyAccess from "../models/UserCompanyAccess";
-import { NotFoundError, ForbiddenError } from "../utils/errors";
-
-async function assertBranchAccess(branchId: string, userId: string) {
-  const access = await UserCompanyAccess.findOne({
-    user:     userId,
-    branches: branchId,
-    active:   true,
-  });
-  if (!access) throw new ForbiddenError("Access denied to this branch");
-  return access;
-}
+import { assertBranchAccess } from "../utils/tenant.guard";
+import { NotFoundError } from "../utils/errors";
 
 export async function findByBranch(branchId: string, userId: string) {
   await assertBranchAccess(branchId, userId);

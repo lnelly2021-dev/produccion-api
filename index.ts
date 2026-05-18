@@ -5,6 +5,7 @@ import express from "express";
 import { createServer } from "http";
 import cookieParser from "cookie-parser";
 import cors from "cors";
+import helmet from "helmet";
 
 import connectToDatabase from "./config/db";
 import { env, assertEnv } from "./config/env.config";
@@ -12,6 +13,9 @@ import { corsOptions } from "./config/cors.config";
 import { setupSocketServer } from "./sockets/socket.server";
 import { logger } from "./utils/Logger";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
+import { authMiddleware } from "./middlewares/auth.middleware";
+import { branchAccessMiddleware } from "./middlewares/branch.access.middleware";
+import { tenantWriteLimiter } from "./middlewares/rateLimiter";
 import { startCronJobs } from "./services/cron.service";
 import { ExampleJob } from "./jobs/ExampleJob";
 
@@ -31,6 +35,7 @@ import ventaRoutes        from "./routes/venta.routes";
 import cotizacionRoutes   from "./routes/cotizacion.routes";
 import pasivoRoutes       from "./routes/pasivo.routes";
 import egresoRoutes       from "./routes/egreso.routes";
+import reporteRoutes      from "./routes/reporte.routes";
 
 // ---- App setup -------------------------------------------------------------
 
@@ -39,6 +44,7 @@ assertEnv();
 const app = express();
 const httpServer = createServer(app);
 
+app.use(helmet());
 app.use(cors(corsOptions));
 app.use(cookieParser());
 
@@ -60,6 +66,14 @@ const V = `v${env.apiVersion}`;
 app.use(`/api/${V}/auth`, authRoutes);
 app.use(`/api/${V}/companies`, companyRoutes);
 app.use(`/api/${V}/companies`, branchRoutes);
+
+// Guard de seguridad multi-tenant: se ejecuta ANTES de cualquier subruta de branch.
+// Valida que la branch existe, pertenece a la empresa del usuario y que el usuario tiene acceso.
+// Adjunta req.tenant = { branch, access } para reutilizar en handlers sin re-query.
+// tenantWriteLimiter aplica límite de escrituras por usuario para evitar abuso.
+app.use(`/api/${V}/branches/:branchId`, authMiddleware, branchAccessMiddleware);
+app.use(`/api/${V}/branches/:branchId`, tenantWriteLimiter);
+
 app.use(`/api/${V}/branches/:branchId/products`, productRoutes);
 app.use(`/api/${V}/branches/:branchId/mesas`,       mesaRoutes);
 app.use(`/api/${V}/branches/:branchId/domicilios`,  domicilioRoutes);
@@ -71,6 +85,7 @@ app.use(`/api/${V}/branches/:branchId/ventas`,        ventaRoutes);
 app.use(`/api/${V}/branches/:branchId/egresos`,       egresoRoutes);
 app.use(`/api/${V}/branches/:branchId/cotizaciones`,  cotizacionRoutes);
 app.use(`/api/${V}/branches/:branchId/pasivos`,       pasivoRoutes);
+app.use(`/api/${V}/branches/:branchId/reportes`,      reporteRoutes);
 app.use(`/api/${V}/example`, exampleRoutes);
 
 // ---- Error handlers (always at the end) ------------------------------------

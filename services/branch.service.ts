@@ -1,6 +1,7 @@
 import Branch from "../models/Branch";
 import UserCompanyAccess from "../models/UserCompanyAccess";
 import { NotFoundError, ForbiddenError } from "../utils/errors";
+import { logAudit } from "../utils/audit";
 import type { CreateBranchDto, UpdateBranchDto } from "../validators/branch.validator";
 
 async function assertCompanyAccess(companyId: string, userId: string) {
@@ -29,6 +30,16 @@ export async function create(
     { user: userId, company: companyId },
     { $addToSet: { branches: branch._id } }
   );
+
+  logAudit({
+    userId:       userId,
+    companyId:    companyId,
+    branchId:     String(branch._id),
+    action:       "SUCURSAL_CREADA",
+    resourceType: "Branch",
+    resourceId:   String(branch._id),
+    meta:         { name: branch.name },
+  });
 
   return branch;
 }
@@ -89,4 +100,14 @@ export async function softDelete(
     { company: companyId },
     { $pull: { branches: branch._id } }
   );
+
+  logAudit({
+    userId:       userId,
+    companyId:    companyId,
+    branchId:     String(branch._id),
+    action:       "SUCURSAL_ELIMINADA",
+    resourceType: "Branch",
+    resourceId:   String(branch._id),
+    meta:         { name: branch.name },
+  });
 }

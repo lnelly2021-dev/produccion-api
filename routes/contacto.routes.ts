@@ -1,23 +1,18 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import Contacto from "../models/Contacto";
-import UserCompanyAccess from "../models/UserCompanyAccess";
+import { assertBranchAccess } from "../utils/tenant.guard";
 import { ok, created } from "../utils/response.util";
-import { ForbiddenError, NotFoundError } from "../utils/errors";
+import { NotFoundError } from "../utils/errors";
 
 const router = Router({ mergeParams: true });
 router.use(authMiddleware);
-
-async function assertAccess(branchId: string, userId: string) {
-  const access = await UserCompanyAccess.findOne({ user: userId, branches: branchId, active: true });
-  if (!access) throw new ForbiddenError("Access denied");
-}
 
 // GET /branches/:branchId/contactos?tipo=CLIENTE
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const branchId = String(req.params.branchId);
-    await assertAccess(branchId, req.user!.userId);
+    await assertBranchAccess(branchId, req.user!.userId);
     const filtro: any = { branch: branchId, activo: true };
     if (req.query.tipo) filtro.tipo = req.query.tipo;
     const lista = await Contacto.find(filtro).sort({ nombre: 1 }).lean();
@@ -29,7 +24,7 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const branchId = String(req.params.branchId);
-    await assertAccess(branchId, req.user!.userId);
+    await assertBranchAccess(branchId, req.user!.userId);
     const contacto = await Contacto.create({ ...req.body, branch: branchId });
     created(res, contacto);
   } catch (err) { next(err); }
@@ -39,7 +34,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
 router.put("/:contactoId", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const branchId = String(req.params.branchId);
-    await assertAccess(branchId, req.user!.userId);
+    await assertBranchAccess(branchId, req.user!.userId);
     const contacto = await Contacto.findOneAndUpdate(
       { _id: req.params.contactoId, branch: branchId },
       req.body, { new: true }
@@ -53,7 +48,7 @@ router.put("/:contactoId", async (req: Request, res: Response, next: NextFunctio
 router.delete("/:contactoId", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const branchId = String(req.params.branchId);
-    await assertAccess(branchId, req.user!.userId);
+    await assertBranchAccess(branchId, req.user!.userId);
     await Contacto.findOneAndUpdate({ _id: req.params.contactoId, branch: branchId }, { activo: false });
     ok(res, { deleted: true });
   } catch (err) { next(err); }

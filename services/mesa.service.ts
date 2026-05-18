@@ -1,19 +1,12 @@
 import Mesa from "../models/Mesa";
 import Pedido from "../models/Pedido";
-import UserCompanyAccess from "../models/UserCompanyAccess";
-import { NotFoundError, ForbiddenError } from "../utils/errors";
-
-async function assertAccess(branchId: string, userId: string) {
-  const access = await UserCompanyAccess.findOne({ user: userId, branches: branchId, active: true });
-  if (!access) throw new ForbiddenError("Access denied");
-  return access;
-}
+import { assertBranchAccess } from "../utils/tenant.guard";
+import { NotFoundError } from "../utils/errors";
 
 export async function findAll(branchId: string, userId: string) {
-  await assertAccess(branchId, userId);
+  await assertBranchAccess(branchId, userId);
   const mesas = await Mesa.find({ branch: branchId, active: true }).sort({ numero: 1 }).lean();
 
-  // Adjuntar pedido activo a cada mesa
   const pedidos = await Pedido.find({ branch: branchId, estado: "activo" }).lean();
   const pedidoMap: Record<string, any> = {};
   pedidos.forEach(p => { pedidoMap[String(p.mesa)] = p; });
@@ -26,7 +19,7 @@ export async function findAll(branchId: string, userId: string) {
 }
 
 export async function inicializar(branchId: string, userId: string, cantidad: number) {
-  await assertAccess(branchId, userId);
+  await assertBranchAccess(branchId, userId);
   const existentes = await Mesa.countDocuments({ branch: branchId, active: true });
   if (existentes > 0) return findAll(branchId, userId);
 
@@ -39,7 +32,7 @@ export async function inicializar(branchId: string, userId: string, cantidad: nu
 }
 
 export async function crear(branchId: string, userId: string) {
-  await assertAccess(branchId, userId);
+  await assertBranchAccess(branchId, userId);
   const mesas = await Mesa.find({ branch: branchId, active: true }).sort({ numero: -1 }).limit(1);
   const siguienteNumero = mesas.length > 0 ? mesas[0].numero + 1 : 1;
   return Mesa.create({
@@ -52,7 +45,7 @@ export async function crear(branchId: string, userId: string) {
 }
 
 export async function asignarMesero(mesaId: string, branchId: string, userId: string, mesero: string) {
-  await assertAccess(branchId, userId);
+  await assertBranchAccess(branchId, userId);
   const mesa = await Mesa.findOneAndUpdate(
     { _id: mesaId, branch: branchId, active: true },
     { mesero, estado: mesero ? "ocupada" : "libre" },
@@ -63,7 +56,7 @@ export async function asignarMesero(mesaId: string, branchId: string, userId: st
 }
 
 export async function liberarMesa(mesaId: string, branchId: string, userId: string) {
-  await assertAccess(branchId, userId);
+  await assertBranchAccess(branchId, userId);
   await Mesa.findOneAndUpdate(
     { _id: mesaId, branch: branchId },
     { mesero: "", estado: "libre" }
@@ -75,7 +68,7 @@ export async function liberarMesa(mesaId: string, branchId: string, userId: stri
 }
 
 export async function eliminar(mesaId: string, branchId: string, userId: string) {
-  await assertAccess(branchId, userId);
+  await assertBranchAccess(branchId, userId);
   const mesa = await Mesa.findOne({ _id: mesaId, branch: branchId, active: true });
   if (!mesa) throw new NotFoundError("Mesa no encontrada");
   await Mesa.findByIdAndUpdate(mesaId, { active: false });

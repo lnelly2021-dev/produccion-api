@@ -1,7 +1,7 @@
 import Domicilio from "../models/Domicilio";
 import Venta from "../models/Venta";
 import Product from "../models/Product";
-import UserCompanyAccess from "../models/UserCompanyAccess";
+import { assertBranchAccess } from "../utils/tenant.guard";
 import { ForbiddenError, NotFoundError } from "../utils/errors";
 
 const SIGUIENTE: Record<string, string | null> = {
@@ -9,20 +9,14 @@ const SIGUIENTE: Record<string, string | null> = {
   EN_CAMINO: "ENTREGADO",  ENTREGADO: null, CANCELADO: null,
 };
 
-async function assertAccess(branchId: string, userId: string) {
-  const access = await UserCompanyAccess.findOne({ user: userId, branches: branchId, active: true });
-  if (!access) throw new ForbiddenError("Access denied");
-}
-
 export async function listar(branchId: string, userId: string) {
-  await assertAccess(branchId, userId);
+  await assertBranchAccess(branchId, userId);
   return Domicilio.find({ branch: branchId }).sort({ createdAt: -1 }).lean();
 }
 
 export async function crear(branchId: string, userId: string, dto: any) {
-  await assertAccess(branchId, userId);
+  await assertBranchAccess(branchId, userId);
 
-  // Número correlativo
   const count = await Domicilio.countDocuments({ branch: branchId });
   const nro   = `DOM-${String(count + 1).padStart(3, "0")}`;
 
@@ -44,7 +38,6 @@ export async function crear(branchId: string, userId: string, dto: any) {
     facturaId:    dto.facturaId,
   });
 
-  // Si trae facturaId → registrar como Venta y descontar stock
   if (dto.facturaId) {
     await Venta.create({
       branch:     branchId,
@@ -69,6 +62,7 @@ export async function crear(branchId: string, userId: string, dto: any) {
       categoria: "ingreso",
     });
 
+    // Filtro { _id, branch } garantiza que el producto pertenece al branch
     for (const p of (dto.productos || [])) {
       await Product.findOneAndUpdate(
         { _id: String(p.id || p.productoId || ""), branch: branchId },
@@ -81,7 +75,7 @@ export async function crear(branchId: string, userId: string, dto: any) {
 }
 
 export async function avanzarEstado(domId: string, branchId: string, userId: string) {
-  await assertAccess(branchId, userId);
+  await assertBranchAccess(branchId, userId);
   const dom = await Domicilio.findOne({ _id: domId, branch: branchId });
   if (!dom) throw new NotFoundError("Domicilio no encontrado");
 
@@ -91,7 +85,6 @@ export async function avanzarEstado(domId: string, branchId: string, userId: str
   dom.estado = sig as any;
   await dom.save();
 
-  // Al marcar ENTREGADO sin factura → registrar como Venta (solo si no existe ya)
   if (sig === "ENTREGADO" && !dom.facturaId) {
     const existeVenta = await Venta.findOne({ nroFactura: dom.nro, branch: branchId });
     if (!existeVenta) {
@@ -111,6 +104,7 @@ export async function avanzarEstado(domId: string, branchId: string, userId: str
         estado:     "CUADRADA",
         categoria:  "ingreso",
       });
+      // Filtro { _id, branch } garantiza que el producto pertenece al branch
       for (const p of dom.productos) {
         const pid = String(p.productoId || "").trim();
         if (!pid || pid.length < 12) continue;
@@ -128,7 +122,7 @@ export async function avanzarEstado(domId: string, branchId: string, userId: str
 }
 
 export async function cancelar(domId: string, branchId: string, userId: string) {
-  await assertAccess(branchId, userId);
+  await assertBranchAccess(branchId, userId);
   const dom = await Domicilio.findOneAndUpdate(
     { _id: domId, branch: branchId },
     { estado: "CANCELADO" },

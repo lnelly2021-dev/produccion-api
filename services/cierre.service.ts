@@ -1,19 +1,13 @@
 import Cierre from "../models/Cierre";
-import UserCompanyAccess from "../models/UserCompanyAccess";
-import { ForbiddenError } from "../utils/errors";
-
-async function assertAccess(branchId: string, userId: string) {
-  const access = await UserCompanyAccess.findOne({ user: userId, branches: branchId, active: true });
-  if (!access) throw new ForbiddenError("Access denied");
-}
+import { assertBranchAccess } from "../utils/tenant.guard";
 
 export async function listar(branchId: string, userId: string) {
-  await assertAccess(branchId, userId);
+  await assertBranchAccess(branchId, userId);
   return Cierre.find({ branch: branchId }).sort({ createdAt: -1 }).lean();
 }
 
 export async function crear(branchId: string, userId: string, dto: any) {
-  await assertAccess(branchId, userId);
+  await assertBranchAccess(branchId, userId);
   return Cierre.create({
     branch:           branchId,
     responsable:      dto.responsable      || "",

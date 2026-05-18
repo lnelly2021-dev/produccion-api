@@ -18,8 +18,9 @@ export interface IVenta extends Document {
   medioPago:   string;   // EFECTIVO | NEQUI | ...
   pagos:       { medio: string; monto: number }[];
   productos:   IItemVenta[];
-  subtotal:    number;   // valor base productos
-  impuesto:    number;   // IVA / IpoConsumo
+  subtotal:    number;   // suma de ítems
+  descuento:   number;   // descuento sobre subtotal (antes de impuesto)
+  impuesto:    number;   // IVA / IpoConsumo sobre (subtotal - descuento)
   propina:     number;   // propina (mesas y venta rápida)
   envio:       number;   // costo envío domicilio
   valor:       number;   // total final
@@ -52,6 +53,7 @@ const ventaSchema = new Schema<IVenta>(
     pagos:       [{ medio: String, monto: Number, _id: false }],
     productos:   { type: [itemVentaSchema], default: [] },
     subtotal:    { type: Number, default: 0 },
+    descuento:   { type: Number, default: 0 },
     impuesto:    { type: Number, default: 0 },
     propina:     { type: Number, default: 0 },
     envio:       { type: Number, default: 0 },

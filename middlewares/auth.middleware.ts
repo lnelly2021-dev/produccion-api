@@ -2,8 +2,10 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.config";
 import { UnauthorizedError, ForbiddenError } from "../utils/errors";
+import User from "../models/User";
 import type { UserRole } from "../models/User";
-import type { CompanyRole } from "../models/UserCompanyAccess";
+import type { CompanyRole, IUserCompanyAccess } from "../models/UserCompanyAccess";
+import type { IBranch } from "../models/Branch";
 
 export interface AuthPayload {
   userId: string;
@@ -17,15 +19,16 @@ declare global {
   namespace Express {
     interface Request {
       user?: AuthPayload;
+      tenant?: { branch: IBranch; access: IUserCompanyAccess };
     }
   }
 }
 
-export const authMiddleware = (
+export const authMiddleware = async (
   req: Request,
   _res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   const header = req.headers.authorization;
   const bearer = header?.startsWith("Bearer ") ? header.slice(7) : null;
   const cookieToken = req.cookies?.token as string | undefined;
@@ -37,9 +40,18 @@ export const authMiddleware = (
 
   try {
     const decoded = jwt.verify(token, env.jwtSecret) as AuthPayload;
+
+    // Verificar que el usuario sigue activo en la base de datos.
+    // Previene el uso de tokens válidos de cuentas desactivadas.
+    const userExists = await User.exists({ _id: decoded.userId, active: true });
+    if (!userExists) {
+      return next(new UnauthorizedError("Account is inactive or does not exist"));
+    }
+
     req.user = decoded;
     next();
-  } catch {
+  } catch (err) {
+    if (err instanceof UnauthorizedError) return next(err);
     next(new UnauthorizedError("Invalid or expired token"));
   }
 };

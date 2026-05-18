@@ -1,8 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { authMiddleware } from "../middlewares/auth.middleware";
-import UserCompanyAccess from "../models/UserCompanyAccess";
+import { assertBranchAccess } from "../utils/tenant.guard";
 import { ok, created } from "../utils/response.util";
-import { ForbiddenError } from "../utils/errors";
 import mongoose, { Schema } from "mongoose";
 
 // Schema inline (simple)
@@ -27,14 +26,9 @@ const Salida = mongoose.models["Salida"] || mongoose.model("Salida", salidaSchem
 const router = Router({ mergeParams: true });
 router.use(authMiddleware);
 
-async function assertAccess(branchId: string, userId: string) {
-  const a = await UserCompanyAccess.findOne({ user: userId, branches: branchId, active: true });
-  if (!a) throw new ForbiddenError("Access denied");
-}
-
 router.get("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await assertAccess(String(req.params.branchId), req.user!.userId);
+    await assertBranchAccess(String(req.params.branchId), req.user!.userId);
     const lista = await Salida.find({ branch: req.params.branchId }).sort({ createdAt: -1 }).lean();
     ok(res, lista);
   } catch (err) { next(err); }
@@ -42,7 +36,7 @@ router.get("/", async (req: Request, res: Response, next: NextFunction) => {
 
 router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
-    await assertAccess(String(req.params.branchId), req.user!.userId);
+    await assertBranchAccess(String(req.params.branchId), req.user!.userId);
     const salida = await Salida.create({ ...req.body, branch: req.params.branchId });
     created(res, salida);
   } catch (err) { next(err); }

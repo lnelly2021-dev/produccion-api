@@ -2,6 +2,7 @@ import Company from "../models/Company";
 import User from "../models/User";
 import UserCompanyAccess from "../models/UserCompanyAccess";
 import { NotFoundError, ForbiddenError, ConflictError } from "../utils/errors";
+import { logAudit } from "../utils/audit";
 import type { CreateCompanyDto, UpdateCompanyDto } from "../validators/company.validator";
 import type { CompanyRole } from "../models/UserCompanyAccess";
 
@@ -34,6 +35,15 @@ export async function create(ownerId: string, dto: CreateCompanyDto) {
     branches: [],
     allBranches: true,
     role: "admin",
+  });
+
+  logAudit({
+    userId:       ownerId,
+    companyId:    String(company._id),
+    action:       "EMPRESA_CREADA",
+    resourceType: "Company",
+    resourceId:   String(company._id),
+    meta:         { name: company.name },
   });
 
   return company;
@@ -77,6 +87,13 @@ export async function update(companyId: string, userId: string, dto: UpdateCompa
 export async function softDelete(companyId: string, userId: string) {
   await assertAdmin(companyId, userId);
   await Company.findByIdAndUpdate(companyId, { active: false });
+  logAudit({
+    userId:       userId,
+    companyId:    companyId,
+    action:       "EMPRESA_ELIMINADA",
+    resourceType: "Company",
+    resourceId:   companyId,
+  });
 }
 
 // ── members ───────────────────────────────────────────────────────────────────
@@ -123,6 +140,15 @@ export async function addMember(
     branches: branchIds,
     allBranches,
     role,
+  });
+
+  logAudit({
+    userId:       requesterId,
+    companyId:    companyId,
+    action:       "MIEMBRO_AGREGADO",
+    resourceType: "UserCompanyAccess",
+    resourceId:   String(access._id),
+    meta:         { email, role },
   });
 
   return access.populate(["user", "branches"]);
@@ -187,4 +213,13 @@ export async function removeMember(
     { active: false }
   );
   if (!result) throw new NotFoundError("Member not found in this company");
+
+  logAudit({
+    userId:       requesterId,
+    companyId:    companyId,
+    action:       "MIEMBRO_REMOVIDO",
+    resourceType: "UserCompanyAccess",
+    resourceId:   targetUserId,
+    meta:         { targetUserId },
+  });
 }

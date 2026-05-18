@@ -16,7 +16,7 @@ export interface IPropinas {
 
 export interface ITributario {
   tipoActividad: string;  // "RESTAURANTE" | "MANUFACTURA" | "SERVICIOS" | "COMERCIO" | "OTRO"
-  tipoImpuesto:  string;  // "IVA_19" | "IPOCONSUMO_8" | "EXENTO" | "NINGUNO"
+  tipoImpuesto:  string;  // "IVA_19" | "IPC_8" | "EXENTO" | "NINGUNO"
 }
 
 export interface ICompany extends Document {
