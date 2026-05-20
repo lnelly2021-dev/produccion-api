@@ -6,6 +6,7 @@ export interface IBranch extends Document {
   address?: string;
   phone?: string;
   bancos: string[];
+  consecutivo: number;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -18,6 +19,7 @@ const branchSchema = new Schema<IBranch>(
     address: { type: String, trim: true },
     phone:   { type: String, trim: true },
     bancos:  [{ type: String }],
+    consecutivo: { type: Number, default: 0 },
     active:  { type: Boolean, default: true },
   },
   { timestamps: true }

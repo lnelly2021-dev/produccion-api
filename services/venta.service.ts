@@ -5,7 +5,7 @@ import Product from "../models/Product";
 import Company from "../models/Company";
 import { assertBranchAccess } from "../utils/tenant.guard";
 import { logAudit } from "../utils/audit";
-import { ForbiddenError, NotFoundError } from "../utils/errors";
+import { NotFoundError } from "../utils/errors";
 
 export async function crear(branchId: string, userId: string, dto: any) {
   // assertBranchAccess devuelve branch — reutilizamos para evitar segunda query
@@ -51,12 +51,28 @@ export async function crear(branchId: string, userId: string, dto: any) {
     categoria:  "ingreso",
   });
 
-  // Descontar stock — filtro { _id, branch } garantiza que el producto pertenece al branch
+  // Descontar stock con soporte para productos compuestos (BOM)
   for (const item of (dto.productos || [])) {
-    await Product.findOneAndUpdate(
-      { _id: item.productoId, branch: branchId },
-      { $inc: { stock: -(Number(item.cantidad) || 0) } }
-    );
+    const prod = await Product.findOne({ _id: item.productoId, branch: branchId }).lean();
+    if (!prod) continue;
+
+    if (prod.componentes && prod.componentes.length > 0) {
+      // Producto compuesto — descontar cada ingrediente individualmente
+      for (const comp of prod.componentes) {
+        const cantTotal = (Number(item.cantidad) || 0) * (Number(comp.cantidad) || 0);
+        await Product.findOneAndUpdate(
+          { _id: comp.productoId, branch: branchId },
+          { $inc: { stock: -cantTotal, stockCombo: cantTotal } }
+        );
+      }
+      // El combo en sí no tiene stock físico — no se descuenta
+    } else {
+      // Producto simple — descuento directo
+      await Product.findOneAndUpdate(
+        { _id: item.productoId, branch: branchId },
+        { $inc: { stock: -(Number(item.cantidad) || 0) } }
+      );
+    }
   }
 
   if (dto.mesaId) {
@@ -103,12 +119,26 @@ export async function anular(ventaId: string, branchId: string, userId: string, 
   );
   if (!venta) throw new NotFoundError("Venta no encontrada o ya anulada");
 
-  // Devolver stock — filtro { _id, branch } garantiza que el producto pertenece al branch
+  // Devolver stock — maneja productos simples y compuestos
   for (const item of venta.productos) {
-    await Product.findOneAndUpdate(
-      { _id: item.productoId, branch: branchId },
-      { $inc: { stock: Number(item.cantidad) || 0 } }
-    );
+    const prod = await Product.findOne({ _id: item.productoId, branch: branchId }).lean();
+    if (!prod) continue;
+
+    if (prod.componentes && prod.componentes.length > 0) {
+      // Combo — revertir los ingredientes
+      for (const comp of prod.componentes) {
+        const cantTotal = (Number(item.cantidad) || 0) * (Number(comp.cantidad) || 0);
+        await Product.findOneAndUpdate(
+          { _id: comp.productoId, branch: branchId },
+          { $inc: { stock: cantTotal, stockCombo: -cantTotal } }
+        );
+      }
+    } else {
+      await Product.findOneAndUpdate(
+        { _id: item.productoId, branch: branchId },
+        { $inc: { stock: Number(item.cantidad) || 0 } }
+      );
+    }
   }
 
   logAudit({

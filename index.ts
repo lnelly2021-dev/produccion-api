@@ -36,6 +36,7 @@ import cotizacionRoutes   from "./routes/cotizacion.routes";
 import pasivoRoutes       from "./routes/pasivo.routes";
 import egresoRoutes       from "./routes/egreso.routes";
 import reporteRoutes      from "./routes/reporte.routes";
+import resetRoutes        from "./routes/reset.routes";
 
 // ---- App setup -------------------------------------------------------------
 
@@ -44,7 +45,7 @@ assertEnv();
 const app = express();
 const httpServer = createServer(app);
 
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false, contentSecurityPolicy: false }));
 app.use(cors(corsOptions));
 app.use(cookieParser());
 
@@ -86,6 +87,7 @@ app.use(`/api/${V}/branches/:branchId/egresos`,       egresoRoutes);
 app.use(`/api/${V}/branches/:branchId/cotizaciones`,  cotizacionRoutes);
 app.use(`/api/${V}/branches/:branchId/pasivos`,       pasivoRoutes);
 app.use(`/api/${V}/branches/:branchId/reportes`,      reporteRoutes);
+app.use(`/api/${V}/branches/:branchId/reset-operacional`, resetRoutes);
 app.use(`/api/${V}/example`, exampleRoutes);
 
 // ---- Error handlers (always at the end) ------------------------------------

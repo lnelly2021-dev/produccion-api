@@ -3,6 +3,14 @@ import { Server, Socket } from "socket.io";
 import jwt from "jsonwebtoken";
 import { env } from "../config/env.config";
 
+// Extrae branchId del JWT para unirse a la sala correcta
+function getBranchFromToken(token: string): string | null {
+  try {
+    const payload = jwt.verify(token, env.jwtSecret) as any;
+    return payload.branchId || null;
+  } catch { return null; }
+}
+
 let io: Server;
 
 export interface SocketUserData {
@@ -46,8 +54,13 @@ export function setupSocketServer(httpServer: HttpServer): Server {
     const user = socket.data as SocketUserData;
     socket.join(`user:${user.userId}`);
 
-    // TODO: registrar handlers de cada subsistema
-    // registerXxxHandlers(io, socket);
+    // Unir al room de la sucursal para recibir eventos en tiempo real
+    const token = socket.handshake.auth.token;
+    const branchId = getBranchFromToken(token);
+    if (branchId) {
+      socket.join(`branch:${branchId}`);
+      socket.data.branchId = branchId;
+    }
 
     socket.on("disconnect", () => {
       // hooks de desconexión si fueran necesarios
@@ -67,4 +80,13 @@ export function getIO(): Server {
     throw new Error("Socket.IO not initialized. Call setupSocketServer() first.");
   }
   return io;
+}
+
+/**
+ * Emite un evento a todos los sockets conectados en una sucursal.
+ * Usar desde servicios REST para notificar en tiempo real.
+ */
+export function emitToBranch(branchId: string, event: string, data: unknown): void {
+  if (!io) return;
+  io.to(`branch:${branchId}`).emit(event, data);
 }

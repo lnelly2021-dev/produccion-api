@@ -1,5 +1,10 @@
 import mongoose, { Schema, Document, Types } from "mongoose";
 
+export interface IComponente {
+  productoId: Types.ObjectId;
+  cantidad:   number;
+}
+
 export interface IProduct extends Document {
   branch:          Types.ObjectId;
   nombre:          string;
@@ -9,6 +14,10 @@ export interface IProduct extends Document {
   precioMayorista: number;
   stock:           number;
   stockInicial:    number;
+  stockCombo:      number;
+  foto?:           string; // acumulado de unidades salidas por combos/cajas
+  // Si tiene componentes es un producto compuesto (combo/caja/picada)
+  componentes:     IComponente[];
   active:          boolean;
   createdAt:       Date;
   updatedAt:       Date;
@@ -24,6 +33,12 @@ const productSchema = new Schema<IProduct>(
     precioMayorista: { type: Number, default: 0 },
     stock:           { type: Number, default: 0 },
     stockInicial:    { type: Number, default: 0 },
+    stockCombo:      { type: Number, default: 0 },
+    foto:            { type: String, default: "" },
+    componentes: [{
+      productoId: { type: Schema.Types.ObjectId, ref: "Product", required: true },
+      cantidad:   { type: Number, required: true, min: 1 },
+    }],
     active:          { type: Boolean, default: true },
   },
   { timestamps: true }

@@ -1,4 +1,4 @@
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { Request } from "express";
 
 /**
@@ -35,7 +35,7 @@ export const tenantWriteLimiter = rateLimit({
   max: 60,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req: Request) => (req.user as any)?.userId ?? req.ip ?? "unknown",
+  keyGenerator: (req: Request) => (req.user as any)?.userId ?? ipKeyGenerator(req.ip ?? "unknown"),
   message: {
     ok: false,
     error: "Too many write operations, please slow down",

@@ -1,6 +1,7 @@
 import Pedido from "../models/Pedido";
 import Mesa from "../models/Mesa";
 import { assertBranchAccess } from "../utils/tenant.guard";
+import { emitToBranch } from "../sockets/socket.server";
 import { NotFoundError } from "../utils/errors";
 
 export async function getActivo(mesaId: string, branchId: string, userId: string) {
@@ -36,6 +37,17 @@ export async function guardar(mesaId: string, branchId: string, userId: string, 
       { estado: "ocupada" }
     );
   }
+
+  // Notificar al terminal del mostrador en tiempo real
+  emitToBranch(branchId, "pedido_nuevo", {
+    mesaId,
+    branchId,
+    mesaNombre: mesa.nombre,
+    mesero:     mesa.mesero,
+    items:      itemsNorm,
+    total:      itemsNorm.reduce((a, i) => a + (i.subtotal || 0), 0),
+    timestamp:  new Date().toISOString(),
+  });
 
   return pedido;
 }
