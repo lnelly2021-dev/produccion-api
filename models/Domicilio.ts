@@ -14,6 +14,8 @@ export interface IDomicilio extends Document {
   barrio:      string;
   productos:   IItem[];
   subtotal:    number;
+  descuento:   number;
+  impuesto:    number;
   envio:       number;
   total:       number;
   medioPago:   string;
@@ -40,6 +42,8 @@ const domicilioSchema = new Schema<IDomicilio>(
     barrio:       { type: String, default: "" },
     productos:    { type: [itemSchema], default: [] },
     subtotal:     { type: Number, default: 0 },
+    descuento:    { type: Number, default: 0 },
+    impuesto:     { type: Number, default: 0 },
     envio:        { type: Number, default: 0 },
     total:        { type: Number, required: true },
     medioPago:    { type: String, default: "EFECTIVO" },
