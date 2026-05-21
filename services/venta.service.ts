@@ -23,13 +23,17 @@ export async function crear(branchId: string, userId: string, dto: any) {
     tipoImpuesto === "IVA_19" ? 0.19 :
     tipoImpuesto === "IPC_8"  ? 0.08 : 0;
 
-  const subtotal   = Math.round((Number(dto.subtotal)  || 0) * 100) / 100;
-  const descuento  = Math.round((Number(dto.descuento) || 0) * 100) / 100;
-  const propina    = Math.round((Number(dto.propina)   || 0) * 100) / 100;
-  const envio      = Math.round((Number(dto.envio)     || 0) * 100) / 100;
-  const baseImp    = Math.max(subtotal - descuento, 0);
-  const impuesto   = Math.round(baseImp * taxRate * 100) / 100;
-  const valor      = baseImp + impuesto + propina + envio;
+  const subtotal  = Math.round(Number(dto.subtotal)  || 0);
+  const descuento = Math.round(Number(dto.descuento) || 0);
+  const propina   = Math.round(Number(dto.propina)   || 0);
+  const envio     = Math.round(Number(dto.envio)     || 0);
+  const baseImp   = Math.max(subtotal - descuento, 0);
+  // Si el frontend envía impuesto explícitamente (incluso 0 para tickets), usarlo.
+  // Si no viene, calcularlo desde la configuración tributaria de la empresa.
+  const impuesto  = (dto.impuesto !== undefined && dto.impuesto !== null)
+    ? Math.round(Number(dto.impuesto))
+    : Math.round(baseImp * taxRate);
+  const valor     = baseImp + impuesto + propina + envio;
 
   const venta = await Venta.create({
     branch:     branchId,
