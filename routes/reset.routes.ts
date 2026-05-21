@@ -67,10 +67,10 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
       { $set: { estado: "libre", mesero: "" } }
     );
 
-    // ── 3. Restaurar stock de productos al stockInicial, limpiar stockCombo ─
+    // ── 3. Poner stock y stockInicial a 0, limpiar stockCombo ──────────────
     await Product.updateMany(
       { branch: bId },
-      [{ $set: { stock: "$stockInicial", stockCombo: 0 } }]  // pipeline expression
+      { $set: { stock: 0, stockInicial: 0, stockCombo: 0 } }
     );
 
     // ── 4. Resetear consecutivo de facturación ──────────────────────────────
