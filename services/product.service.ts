@@ -60,6 +60,8 @@ export async function remove(
     { new: true }
   );
   if (!product) throw new NotFoundError("Product not found");
+  // Log para rastrear eliminaciones inesperadas en masa
+  console.warn(`[Product.remove] id=${productId} branch=${branchId} user=${userId} nombre=${product.nombre}`);
 }
 
 export async function restoreInactive(branchId: string, userId: string) {
