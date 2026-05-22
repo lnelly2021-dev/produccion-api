@@ -57,3 +57,13 @@ export const remove = async (req: Request, res: Response, next: NextFunction): P
     ok(res, { deleted: true });
   } catch (err) { next(err); }
 };
+
+export const restoreInactive = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const reactivados = await productService.restoreInactive(
+      String(req.params.branchId),
+      req.user!.userId
+    );
+    ok(res, reactivados);
+  } catch (err) { next(err); }
+};

@@ -59,3 +59,10 @@ export async function remove(
   );
   if (!product) throw new NotFoundError("Product not found");
 }
+
+export async function restoreInactive(branchId: string, userId: string) {
+  await assertBranchAccess(branchId, userId);
+  const inactivos = await Product.countDocuments({ branch: branchId, active: false });
+  const result    = await Product.updateMany({ branch: branchId, active: false }, { $set: { active: true } });
+  return { reactivados: result.modifiedCount, inactivosEncontrados: inactivos };
+}
