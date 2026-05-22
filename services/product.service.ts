@@ -21,9 +21,11 @@ export async function update(
   dto: any
 ) {
   await assertBranchAccess(branchId, userId);
+  // Nunca permitir cambiar el campo active ni branch por esta vía
+  const { active: _a, branch: _b, ...safeDto } = dto;
   const product = await Product.findOneAndUpdate(
     { _id: productId, branch: branchId, active: true },
-    dto,
+    safeDto,
     { new: true, runValidators: true }
   );
   if (!product) throw new NotFoundError("Product not found");
