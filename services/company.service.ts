@@ -87,6 +87,8 @@ export async function update(companyId: string, userId: string, dto: UpdateCompa
 export async function softDelete(companyId: string, userId: string) {
   await assertAdmin(companyId, userId);
   await Company.findByIdAndUpdate(companyId, { active: false });
+  // Desactivar también todos los accesos a esta empresa
+  await UserCompanyAccess.updateMany({ company: companyId }, { active: false });
   logAudit({
     userId:       userId,
     companyId:    companyId,
