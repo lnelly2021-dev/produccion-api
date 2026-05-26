@@ -180,9 +180,12 @@ export async function getProfile(userId: string) {
   if (!user) throw new NotFoundError("User not found");
 
   const accesses = await UserCompanyAccess.find({ user: userId, active: true })
-    .populate<{ company: { _id: unknown; name: string } }>("company", "name taxId address phone email logo")
+    .populate<{ company: { _id: unknown; name: string; active: boolean } }>("company", "name taxId address phone email logo active")
     .populate({ path: "branches", match: { active: true }, select: "name address phone" })
     .lean();
 
-  return { user, companies: accesses };
+  // Excluir empresas eliminadas (company.active = false) cuyo UserCompanyAccess aún no fue desactivado
+  const activeAccesses = accesses.filter((a) => a.company && (a.company as any).active !== false);
+
+  return { user, companies: activeAccesses };
 }

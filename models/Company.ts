@@ -15,8 +15,9 @@ export interface IPropinas {
 }
 
 export interface ITributario {
-  tipoActividad: string;  // "RESTAURANTE" | "MANUFACTURA" | "SERVICIOS" | "COMERCIO" | "OTRO"
-  tipoImpuesto:  string;  // "IVA_19" | "IPC_8" | "EXENTO" | "NINGUNO"
+  tipoActividad:  string;  // "RESTAURANTE" | "MANUFACTURA" | "SERVICIOS" | "COMERCIO" | "OTRO"
+  tipoImpuesto:   string;  // "IVA_19" | "IPC_8" | "EXENTO" | "NINGUNO"
+  regimenEmpresa: string;  // "NO_RESPONSABLE_IVA" | "RESPONSABLE_IVA"
 }
 
 export interface ICompany extends Document {
@@ -58,8 +59,9 @@ const companySchema = new Schema<ICompany>(
       aplicarAntes: { type: Boolean, default: false },
     },
     tributario: {
-      tipoActividad: { type: String, default: "RESTAURANTE" },
-      tipoImpuesto:  { type: String, default: "NINGUNO" },
+      tipoActividad:  { type: String, default: "RESTAURANTE" },
+      tipoImpuesto:   { type: String, default: "NINGUNO" },
+      regimenEmpresa: { type: String, default: "NO_RESPONSABLE_IVA" },
     },
     owner:  { type: Schema.Types.ObjectId, ref: "User", required: true },
     active: { type: Boolean, default: true },

@@ -28,11 +28,12 @@ export const authRateLimiter = rateLimit({
   },
 });
 
-// Rate limiter para operaciones write por usuario autenticado.
-// 60 operaciones de escritura por ventana de 15 min por usuario.
+// Rate limiter para operaciones write (POST/PUT/DELETE) por usuario autenticado.
+// Los GETs quedan excluidos — son lecturas y no representan riesgo de abuso.
 export const tenantWriteLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 60,
+  max: 200,
+  skip: (req: Request) => req.method === "GET",
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req: Request) => (req.user as any)?.userId ?? ipKeyGenerator(req.ip ?? "unknown"),

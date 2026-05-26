@@ -12,11 +12,11 @@ export interface IProduct extends Document {
   presentacion:    string;
   precioPublico:   number;
   precioMayorista: number;
+  tarifaIVA:       number;  // 0 | 5 | 19
   stock:           number;
   stockInicial:    number;
   stockCombo:      number;
-  foto?:           string; // acumulado de unidades salidas por combos/cajas
-  // Si tiene componentes es un producto compuesto (combo/caja/picada)
+  foto?:           string;
   componentes:     IComponente[];
   active:          boolean;
   createdAt:       Date;
@@ -31,6 +31,7 @@ const productSchema = new Schema<IProduct>(
     presentacion:    { type: String, trim: true, default: "UND" },
     precioPublico:   { type: Number, default: 0 },
     precioMayorista: { type: Number, default: 0 },
+    tarifaIVA:       { type: Number, default: 0 },
     stock:           { type: Number, default: 0 },
     stockInicial:    { type: Number, default: 0 },
     stockCombo:      { type: Number, default: 0 },
