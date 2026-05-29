@@ -37,6 +37,7 @@ import pasivoRoutes       from "./routes/pasivo.routes";
 import egresoRoutes       from "./routes/egreso.routes";
 import reporteRoutes      from "./routes/reporte.routes";
 import resetRoutes        from "./routes/reset.routes";
+import preFacturaRoutes   from "./routes/preFactura.routes";
 
 // ---- App setup -------------------------------------------------------------
 
@@ -88,6 +89,7 @@ app.use(`/api/${V}/branches/:branchId/cotizaciones`,  cotizacionRoutes);
 app.use(`/api/${V}/branches/:branchId/pasivos`,       pasivoRoutes);
 app.use(`/api/${V}/branches/:branchId/reportes`,      reporteRoutes);
 app.use(`/api/${V}/branches/:branchId/reset-operacional`, resetRoutes);
+app.use(`/api/${V}/branches/:branchId/pre-facturas`,     preFacturaRoutes);
 app.use(`/api/${V}/example`, exampleRoutes);
 
 // ---- Error handlers (always at the end) ------------------------------------
