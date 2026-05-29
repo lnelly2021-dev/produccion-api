@@ -113,25 +113,15 @@ router.post("/:pfId/entregar", async (req: Request, res: Response, next: NextFun
     if (!branch) throw new NotFoundError("Sucursal no encontrada");
     const nroFactura = `FR-${branch.consecutivo}`;
 
-    // 1. Agregar el pago del saldo a pf.abonos PRIMERO (para incluirlo en pagosFactura sin duplicar)
-    if (montoSaldo > 0) {
-      for (const p of pagosSaldo) {
-        if ((Number(p.monto) || 0) > 0)
-          pf.abonos.push({ fecha: new Date(), medio: p.medio, monto: Number(p.monto) });
-      }
-    }
+    // FR solo lleva el saldo cobrado HOY al entregar.
+    // El anticipo quedó registrado en la PF el día que se recibió → no se repite aquí.
+    const pagosFactura = pagosSaldo.filter((p: any) => (Number(p.monto) || 0) > 0);
+    const mediosUnicos = pagosFactura.length > 0
+      ? [...new Set(pagosFactura.map((p: any) => p.medio))]
+      : ["ANTICIPO"];
+    const medioPago = mediosUnicos.length > 1 ? "MIXTO" : mediosUnicos[0];
 
-    // 2. Construir pagosFactura = pagos iniciales + todos los abonos (incluye el de entrega)
-    //    Así la FR usa medios REALES: EFECTIVO, NEQUI, etc. — sin cuenta "ANTICIPO"
-    const pagosFactura = [
-      ...(pf.pagos  || []).map((p: any) => ({ medio: p.medio, monto: p.monto })),
-      ...(pf.abonos || []).map((a: any) => ({ medio: a.medio, monto: a.monto })),
-    ].filter(p => p.monto > 0);
-
-    const mediosUnicos = [...new Set(pagosFactura.map(p => p.medio))];
-    const medioPago = mediosUnicos.length > 1 ? "MIXTO" : mediosUnicos[0] || "EFECTIVO";
-
-    // 3. Crear la venta (factura real)
+    // Crear la venta (factura real)
     const venta = await Venta.create({
       branch:    branchId,
       nroFactura,
@@ -164,7 +154,7 @@ router.post("/:pfId/entregar", async (req: Request, res: Response, next: NextFun
       }
     }
 
-    // 5. Marcar PF como entregada (abonos ya actualizados en paso 1)
+    // Marcar PF como entregada (abonos intermedios ya están; NO agregar saldo aquí — quedó en FR)
     pf.estado         = "ENTREGADA";
     pf.facturaRef     = nroFactura;
     pf.saldoPendiente = 0;
