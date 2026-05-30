@@ -8,6 +8,7 @@ export interface IBranch extends Document {
   bancos: string[];
   consecutivo:   number;
   consecutivoPF: number;
+  consecutivoCN: number;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -22,6 +23,7 @@ const branchSchema = new Schema<IBranch>(
     bancos:  [{ type: String }],
     consecutivo:   { type: Number, default: 0 },
     consecutivoPF: { type: Number, default: 0 },
+    consecutivoCN: { type: Number, default: 0 },
     active:  { type: Boolean, default: true },
   },
   { timestamps: true }

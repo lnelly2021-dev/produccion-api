@@ -1,6 +1,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { authMiddleware } from "../middlewares/auth.middleware";
 import Recaudo from "../models/Recaudo";
+import Branch  from "../models/Branch";
 import { assertBranchAccess } from "../utils/tenant.guard";
 import { ok, created } from "../utils/response.util";
 
@@ -20,7 +21,21 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
   try {
     const branchId = String(req.params.branchId);
     await assertBranchAccess(branchId, req.user!.userId);
-    const rec = await Recaudo.create({ ...req.body, branch: branchId });
+
+    let body = { ...req.body };
+
+    // Cruce de nómina: asignar consecutivo CN automático
+    if (body.medioPago === "DESCUENTO_NOMINA") {
+      const branch = await Branch.findByIdAndUpdate(
+        branchId,
+        { $inc: { consecutivoCN: 1 } },
+        { new: true }
+      );
+      const num = String(branch?.consecutivoCN ?? 1).padStart(3, "0");
+      body.nroRecibo = `CN-${num}`;
+    }
+
+    const rec = await Recaudo.create({ ...body, branch: branchId });
     created(res, rec);
   } catch (err) { next(err); }
 });
