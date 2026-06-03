@@ -36,8 +36,14 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
         const num = String(branch?.consecutivoCN ?? 1).padStart(3, "0");
         body.nroRecibo = `CN-${num}`;
       } else {
-        // Pago directo u otro: usar timestamp corto
-        body.nroRecibo = `R-${Date.now().toString().slice(-7)}`;
+        // Pago directo u otro recaudo: consecutivo RC-XXXX (mismo que Otros Ingresos)
+        const branchRC = await Branch.findByIdAndUpdate(
+          branchId,
+          { $inc: { consecutivoRC: 1 } },
+          { new: true }
+        );
+        const numRC = String(branchRC?.consecutivoRC ?? 1).padStart(4, "0");
+        body.nroRecibo = `RC-${numRC}`;
       }
     }
 
