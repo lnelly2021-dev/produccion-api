@@ -24,15 +24,21 @@ router.post("/", async (req: Request, res: Response, next: NextFunction) => {
 
     let body = { ...req.body };
 
-    // Cruce de nómina: asignar consecutivo CN automático
-    if (body.medioPago === "DESCUENTO_NOMINA") {
-      const branch = await Branch.findByIdAndUpdate(
-        branchId,
-        { $inc: { consecutivoCN: 1 } },
-        { new: true }
-      );
-      const num = String(branch?.consecutivoCN ?? 1).padStart(3, "0");
-      body.nroRecibo = `CN-${num}`;
+    // Asignar nroRecibo si no viene (o viene vacío)
+    if (!body.nroRecibo) {
+      if (body.medioPago === "DESCUENTO_NOMINA") {
+        // Cruce nómina: consecutivo CN
+        const branch = await Branch.findByIdAndUpdate(
+          branchId,
+          { $inc: { consecutivoCN: 1 } },
+          { new: true }
+        );
+        const num = String(branch?.consecutivoCN ?? 1).padStart(3, "0");
+        body.nroRecibo = `CN-${num}`;
+      } else {
+        // Pago directo u otro: usar timestamp corto
+        body.nroRecibo = `R-${Date.now().toString().slice(-7)}`;
+      }
     }
 
     const rec = await Recaudo.create({ ...body, branch: branchId });
