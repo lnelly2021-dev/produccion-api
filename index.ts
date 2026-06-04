@@ -10,117 +10,63 @@ import helmet from "helmet";
 import connectToDatabase from "./config/db";
 import { env, assertEnv } from "./config/env.config";
 import { corsOptions } from "./config/cors.config";
-import { setupSocketServer } from "./sockets/socket.server";
 import { logger } from "./utils/Logger";
 import { errorHandler, notFoundHandler } from "./middlewares/errorHandler";
 import { authMiddleware } from "./middlewares/auth.middleware";
 import { branchAccessMiddleware } from "./middlewares/branch.access.middleware";
 import { tenantWriteLimiter } from "./middlewares/rateLimiter";
-import { startCronJobs } from "./services/cron.service";
-import { ExampleJob } from "./jobs/ExampleJob";
 
-// ---- Routes ----------------------------------------------------------------
-import exampleRoutes from "./routes/example.routes";
-import authRoutes from "./routes/auth.routes";
-import companyRoutes from "./routes/company.routes";
-import branchRoutes from "./routes/branch.routes";
-import productRoutes from "./routes/product.routes";
-import mesaRoutes      from "./routes/mesa.routes";
-import domicilioRoutes from "./routes/domicilio.routes";
-import cierreRoutes    from "./routes/cierre.routes";
-import recaudoRoutes   from "./routes/recaudo.routes";
-import contactoRoutes  from "./routes/contacto.routes";
-import salidaRoutes      from "./routes/salida.routes";
-import ventaRoutes        from "./routes/venta.routes";
-import cotizacionRoutes   from "./routes/cotizacion.routes";
-import pasivoRoutes       from "./routes/pasivo.routes";
-import egresoRoutes       from "./routes/egreso.routes";
-import reporteRoutes      from "./routes/reporte.routes";
-import resetRoutes        from "./routes/reset.routes";
-import preFacturaRoutes   from "./routes/preFactura.routes";
+// ── Rutas base (auth + empresas) ─────────────────────────────────────────────
+import authRoutes     from "./routes/auth.routes";
+import companyRoutes  from "./routes/company.routes";
+import branchRoutes   from "./routes/branch.routes";
+import contactoRoutes from "./routes/contacto.routes";
 
-// ---- App setup -------------------------------------------------------------
+// ── Rutas de Producción ───────────────────────────────────────────────────────
+import ingredienteRoutes from "./routes/ingrediente.routes";
+import recetaRoutes      from "./routes/receta.routes";
+import centroCostoRoutes from "./routes/centroCosto.routes";
+import hojaCostoRoutes   from "./routes/hojaCosto.routes";
 
 assertEnv();
 
-const app = express();
+const app        = express();
 const httpServer = createServer(app);
 
 app.use(helmet({ crossOriginResourcePolicy: false, contentSecurityPolicy: false }));
 app.use(cors(corsOptions));
 app.use(cookieParser());
+app.use((req, _res, next) => { logger.info(`${req.method} ${req.path}`); next(); });
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true }));
 
-app.use((req, _res, next) => {
-  logger.info(`${req.method} ${req.path} - ${req.ip}`);
-  next();
-});
+app.get("/health", (_req, res) => res.status(200).json({ ok: true, app: "produccion-api" }));
 
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ extended: true, limit: "50mb" }));
-
-// ---- Health check ----------------------------------------------------------
-app.get("/health", (_req, res) => {
-  res.status(200).json({ ok: true, status: "healthy" });
-});
-
-// ---- Mount routes ----------------------------------------------------------
 const V = `v${env.apiVersion}`;
-app.use(`/api/${V}/auth`, authRoutes);
+
+app.use(`/api/${V}/auth`,      authRoutes);
 app.use(`/api/${V}/companies`, companyRoutes);
 app.use(`/api/${V}/companies`, branchRoutes);
 
-// Guard de seguridad multi-tenant: se ejecuta ANTES de cualquier subruta de branch.
-// Valida que la branch existe, pertenece a la empresa del usuario y que el usuario tiene acceso.
-// Adjunta req.tenant = { branch, access } para reutilizar en handlers sin re-query.
-// tenantWriteLimiter aplica límite de escrituras por usuario para evitar abuso.
 app.use(`/api/${V}/branches/:branchId`, authMiddleware, branchAccessMiddleware);
 app.use(`/api/${V}/branches/:branchId`, tenantWriteLimiter);
 
-app.use(`/api/${V}/branches/:branchId/products`, productRoutes);
-app.use(`/api/${V}/branches/:branchId/mesas`,       mesaRoutes);
-app.use(`/api/${V}/branches/:branchId/domicilios`,  domicilioRoutes);
-app.use(`/api/${V}/branches/:branchId/cierres`,     cierreRoutes);
-app.use(`/api/${V}/branches/:branchId/recaudos`,    recaudoRoutes);
-app.use(`/api/${V}/branches/:branchId/contactos`,   contactoRoutes);
-app.use(`/api/${V}/branches/:branchId/salidas`,       salidaRoutes);
-app.use(`/api/${V}/branches/:branchId/ventas`,        ventaRoutes);
-app.use(`/api/${V}/branches/:branchId/egresos`,       egresoRoutes);
-app.use(`/api/${V}/branches/:branchId/cotizaciones`,  cotizacionRoutes);
-app.use(`/api/${V}/branches/:branchId/pasivos`,       pasivoRoutes);
-app.use(`/api/${V}/branches/:branchId/reportes`,      reporteRoutes);
-app.use(`/api/${V}/branches/:branchId/reset-operacional`, resetRoutes);
-app.use(`/api/${V}/branches/:branchId/pre-facturas`,     preFacturaRoutes);
-app.use(`/api/${V}/example`, exampleRoutes);
+app.use(`/api/${V}/branches/:branchId/contactos`,     contactoRoutes);
+app.use(`/api/${V}/branches/:branchId/ingredientes`,  ingredienteRoutes);
+app.use(`/api/${V}/branches/:branchId/recetas`,       recetaRoutes);
+app.use(`/api/${V}/branches/:branchId/centros-costo`, centroCostoRoutes);
+app.use(`/api/${V}/branches/:branchId/hojas-costo`,   hojaCostoRoutes);
 
-// ---- Error handlers (always at the end) ------------------------------------
 app.use(notFoundHandler);
 app.use(errorHandler);
 
-// ---- Cron / Background jobs ------------------------------------------------
-startCronJobs();
-ExampleJob.start();
-
-// ---- Server bootstrap ------------------------------------------------------
 const startServer = async () => {
-  try {
-    await connectToDatabase();
-    setupSocketServer(httpServer);
-
-    httpServer.listen(env.port, () => {
-      console.log(`
-  ╔══════════════════════════════════════╗
-  ║                                      ║
-  ║   SmartPOS API ready                 ║
-  ║   PORT: ${String(env.port).padEnd(28)} ║
-  ║   ENV:  ${env.nodeEnv.padEnd(28)} ║
-  ║                                      ║
-  ╚══════════════════════════════════════╝
-`);
-    });
-  } catch (error) {
-    console.error("Failed to start server:", error);
-    process.exit(1);
-  }
+  await connectToDatabase();
+  httpServer.listen(env.port, () => {
+    console.log(`\n  ╔══════════════════════════════════╗`);
+    console.log(`  ║   Producción API  PORT:${env.port}  ║`);
+    console.log(`  ╚══════════════════════════════════╝\n`);
+  });
 };
 
 startServer();
