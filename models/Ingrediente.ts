@@ -2,20 +2,24 @@ import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IIngrediente extends Document {
   branch:          Types.ObjectId;
+  codigo:          string;
+  familia:         string;
   nombre:          string;
-  unidad:          string;   // kg, lt, und, gr, ml, etc.
+  unidad:          string;
   costoUnitario:   number;
-  proveedor?:      string;
+  costoGr:         number;
   activo:          boolean;
 }
 
 const ingredienteSchema = new Schema<IIngrediente>(
   {
     branch:        { type: Schema.Types.ObjectId, ref: "Branch", required: true },
+    codigo:        { type: String, default: "" },
+    familia:       { type: String, default: "" },
     nombre:        { type: String, required: true, trim: true },
     unidad:        { type: String, default: "und" },
     costoUnitario: { type: Number, default: 0 },
-    proveedor:     { type: String, default: "" },
+    costoGr:       { type: Number, default: 0 },
     activo:        { type: Boolean, default: true },
   },
   { timestamps: true }

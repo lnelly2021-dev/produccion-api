@@ -30,7 +30,7 @@ router.post("/calcular/:recetaId", async (req: Request, res: Response, next: Nex
 
     const centros = await CentroCosto.find({ branch: branchId, activo: true }).lean();
     const margen  = Number(req.body.margenDeseado) || 0;
-    const lote    = receta.tamanoLote || 1;
+    const lote    = receta.rendimiento || 1;
 
     // Calcular cada tipo de costo
     const sumar = (tipo: string) => centros
@@ -56,7 +56,7 @@ router.post("/calcular/:recetaId", async (req: Request, res: Response, next: Nex
     const precioSugerido = margen > 0 ? Math.round(costoUnitario / (1 - margen / 100)) : 0;
 
     const hoja = await HojaCosto.create({
-      branch: branchId, recetaId: receta._id, producto: receta.producto,
+      branch: branchId, recetaId: receta._id, producto: receta.nombre,
       tamanoLote: lote, costoMP, costoMO, costoFijo, costoVariable,
       costoIndirecto, costoComercial, costoAdmin,
       costoTotalLote, costoUnitario, margenDeseado: margen, precioSugerido,
