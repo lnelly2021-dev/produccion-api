@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "predev": "npx kill-port 5000",
+    "predev": "npx kill-port 5000 5001",
     "dev": "nodemon --exec npx ts-node index.ts",
     "start": "npm run build && node --max-old-space-size=4096 dist/index.js"
   },

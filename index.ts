@@ -28,6 +28,7 @@ import recetaRoutes           from "./routes/receta.routes";
 import centroCostoRoutes      from "./routes/centroCosto.routes";
 import hojaCostoRoutes        from "./routes/hojaCosto.routes";
 import costoProduccionRoutes  from "./routes/costoProduccion.routes";
+import informeProduccionRoutes from "./routes/informeProduccion.routes";
 
 assertEnv();
 
@@ -58,6 +59,7 @@ app.use(`/api/${V}/branches/:branchId/recetas`,            recetaRoutes);
 app.use(`/api/${V}/branches/:branchId/centros-costo`,      centroCostoRoutes);
 app.use(`/api/${V}/branches/:branchId/hojas-costo`,        hojaCostoRoutes);
 app.use(`/api/${V}/branches/:branchId/costos-produccion`,  costoProduccionRoutes);
+app.use(`/api/${V}/branches/:branchId/informes-produccion`, informeProduccionRoutes);
 
 app.use(notFoundHandler);
 app.use(errorHandler);
