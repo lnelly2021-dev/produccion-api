@@ -25,8 +25,6 @@ import contactoRoutes from "./routes/contacto.routes";
 // ── Rutas de Producción ───────────────────────────────────────────────────────
 import ingredienteRoutes     from "./routes/ingrediente.routes";
 import recetaRoutes           from "./routes/receta.routes";
-import centroCostoRoutes      from "./routes/centroCosto.routes";
-import hojaCostoRoutes        from "./routes/hojaCosto.routes";
 import costoProduccionRoutes  from "./routes/costoProduccion.routes";
 import informeProduccionRoutes from "./routes/informeProduccion.routes";
 
@@ -56,8 +54,6 @@ app.use(`/api/${V}/branches/:branchId`, tenantWriteLimiter);
 app.use(`/api/${V}/branches/:branchId/contactos`,          contactoRoutes);
 app.use(`/api/${V}/branches/:branchId/ingredientes`,       ingredienteRoutes);
 app.use(`/api/${V}/branches/:branchId/recetas`,            recetaRoutes);
-app.use(`/api/${V}/branches/:branchId/centros-costo`,      centroCostoRoutes);
-app.use(`/api/${V}/branches/:branchId/hojas-costo`,        hojaCostoRoutes);
 app.use(`/api/${V}/branches/:branchId/costos-produccion`,  costoProduccionRoutes);
 app.use(`/api/${V}/branches/:branchId/informes-produccion`, informeProduccionRoutes);
 
